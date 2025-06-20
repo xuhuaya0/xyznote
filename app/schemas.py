@@ -1,8 +1,21 @@
+
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
-# 资产分类（用于账本创建时选择）
+# ---------- 用户 ----------
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+class User(BaseModel):
+    id: int
+    username: str
+
+    class Config:
+        orm_mode = True
+
+# ---------- 资产分类 ----------
 class AssetCategoryCreate(BaseModel):
     region: str
     category_type: str
@@ -10,10 +23,11 @@ class AssetCategoryCreate(BaseModel):
 
 class AssetCategoryOut(AssetCategoryCreate):
     uid: str
+
     class Config:
         orm_mode = True
 
-# 账本（创建 & 返回）
+# ---------- 账本 ----------
 class LedgerCreate(BaseModel):
     name: str
     asset_category_uid: str
@@ -35,18 +49,27 @@ class LedgerOut(LedgerCreate):
     class Config:
         orm_mode = True
 
-# 流水
+# ---------- 交易 ----------
 class TransactionCreate(BaseModel):
     ledger_uid: str
     amount: float
-    transaction_type: str
+    transaction_type: str  # income, expense, transfer
     currency: str
     rate_to_base: float
     converted_amount: float
     event_time: datetime
     purpose: Optional[str]
     raw_text: Optional[str]
-    to_ledger_uid: Optional[str]  # 如果是转账才填
+
+class TransactionUpdate(BaseModel):
+    amount: Optional[float]
+    transaction_type: Optional[str]
+    currency: Optional[str]
+    rate_to_base: Optional[float]
+    converted_amount: Optional[float]
+    event_time: Optional[datetime]
+    purpose: Optional[str]
+    raw_text: Optional[str]
 
 class TransactionOut(TransactionCreate):
     uid: str
@@ -55,7 +78,7 @@ class TransactionOut(TransactionCreate):
     class Config:
         orm_mode = True
 
-# 快照
+# ---------- 快照 ----------
 class LedgerSnapshotOut(BaseModel):
     uid: str
     ledger_uid: str
